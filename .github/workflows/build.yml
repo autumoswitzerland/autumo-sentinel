@@ -13,7 +13,7 @@ on:
       branch:
         description: 'Branch to build'
         required: true
-        default: 'master'
+        default: 'main'
 
 env:
   VERSION: 3.0.0
@@ -74,44 +74,46 @@ jobs:
       - name: Package ZIP (Windows)
         if: matrix.os == 'windows-latest'
         run: |
-          New-Item -ItemType Directory -Force -Path "$env:DIST_DIR\pack\rules" | Out-Null
-          Copy-Item -Recurse -Force config "$env:DIST_DIR\pack"
-          Copy-Item -Recurse -Force patterns "$env:DIST_DIR\pack"
-          Copy-Item -Force rules\rules.* "$env:DIST_DIR\pack\rules"
-          Copy-Item -Force rules\rule-set-policy.md "$env:DIST_DIR\pack\rules"
-          Copy-Item -Force README.md "$env:DIST_DIR\pack"
-          Copy-Item -Force "$env:DIST_DIR\$env:BIN_NAME.exe" "$env:DIST_DIR\pack\"
+          $packDir = "$env:DIST_DIR\pack"
+          New-Item -ItemType Directory -Force -Path "$packDir\rules" | Out-Null
+          Copy-Item -Recurse -Force config $packDir
+          Copy-Item -Recurse -Force patterns $packDir
+          Copy-Item -Force rules\rules.* "$packDir\rules"
+          Copy-Item -Force rules\rule-set-policy.md "$packDir\rules"
+          Copy-Item -Force README.md $packDir
+          Copy-Item -Force "$env:DIST_DIR\$env:BIN_NAME.exe" $packDir
 
-          $ZIP_FILE="dist/autumo-Sentinel-$env:VERSION-windows-x64.zip"
-          Compress-Archive -Path "$env:DIST_DIR\pack\*" -DestinationPath $ZIP_FILE -Force
-          Remove-Item -Recurse -Force "$env:DIST_DIR\pack"
-          Write-Output "ZIP file created: $ZIP_FILE"
+          $zipFile = "$env:DIST_DIR\autumo-Sentinel-$env:VERSION-windows-x64.zip"
+          Compress-Archive -Path "$packDir\*" -DestinationPath $zipFile -Force
+          Remove-Item -Recurse -Force $packDir
+          Write-Output "ZIP file created: $zipFile"
         shell: pwsh
 
       - name: Package ZIP (macOS/Linux)
         if: matrix.os != 'windows-latest'
         run: |
-          mkdir -p dist/pack/rules
-          cp -r config dist/pack
-          cp -r patterns dist/pack
-          cp rules/rules.* dist/pack/rules
-          cp rules/rule-set-policy.md dist/pack/rules
-          cp README.md dist/pack
-          cp dist/sentinel dist/pack/
+          PACK_DIR="${DIST_DIR}/pack"
+          mkdir -p "$PACK_DIR/rules"
+          cp -r config "$PACK_DIR"
+          cp -r patterns "$PACK_DIR"
+          cp rules/rules.* "$PACK_DIR/rules"
+          cp rules/rule-set-policy.md "$PACK_DIR/rules"
+          cp README.md "$PACK_DIR"
+          cp "$DIST_DIR/$BIN_NAME" "$PACK_DIR/"
 
-          ZIP_FILE="dist/autumo-Sentinel-${{ env.VERSION }}"
+          ZIP_NAME="autumo-Sentinel-${VERSION}"
           case "${{ matrix.os }}" in
-            macos-15-intel) ZIP_FILE="$ZIP_FILE-macos-x64" ;;
-            macos-latest)    ZIP_FILE="$ZIP_FILE-macos-arm64" ;;
-            ubuntu-latest)   ZIP_FILE="$ZIP_FILE-linux-x64" ;;
+            macos-15-intel) ZIP_NAME="$ZIP_NAME-macos-x64" ;;
+            macos-latest)    ZIP_NAME="$ZIP_NAME-macos-arm64" ;;
+            ubuntu-latest)   ZIP_NAME="$ZIP_NAME-linux-x64" ;;
           esac
-          ZIP_FILE="$ZIP_FILE.zip"
+          ZIP_PATH="${DIST_DIR}/${ZIP_NAME}.zip"
 
-          cd dist/pack
-          zip -r "../$ZIP_FILE" . -x "*/.DS_Store" -x "*/__MACOSX"
+          cd "$PACK_DIR"
+          zip -r "$ZIP_PATH" . -x "*/.DS_Store" -x "*/__MACOSX"
           cd ../..
-          rm -rf dist/pack
-          echo "ZIP file created: $ZIP_FILE"
+          rm -rf "$PACK_DIR"
+          echo "ZIP file created: $ZIP_PATH"
         shell: bash
 
       # --------- Upload artifact ---------
