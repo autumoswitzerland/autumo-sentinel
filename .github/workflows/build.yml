@@ -49,27 +49,31 @@ jobs:
         run: python -m pip install --upgrade pip setuptools wheel pyinstaller
 
       # --------- Clean previous builds ---------
-      - name: Clean previous builds
+      - name: Clean previous builds (Windows)
         if: runner.os == 'Windows'
         run: Remove-Item -Recurse -Force dist, build, sentinel.spec -ErrorAction SilentlyContinue
-        shell: powershell
+        shell: pwsh
 
-      - name: Clean previous builds
+      - name: Clean previous builds (macOS/Linux)
         if: runner.os != 'Windows'
         run: rm -rf ${{ env.DIST_DIR }} build sentinel.spec
+        shell: bash
 
       # --------- Build sentinel CLI ---------
-      - name: Build sentinel CLI
-        run: |
-          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-              pyinstaller --name sentinel --onefile app/sentinel.py
-          elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-              # Apple Silicon
-              pyinstaller --name sentinel --onefile --target-arch arm64 app/sentinel.py
-          else
-              # macos-15-intel oder Ubuntu/Linux
-              pyinstaller --name sentinel --onefile --target-arch x86_64 app/sentinel.py
-          fi
+      - name: Build sentinel CLI (Windows)
+        if: matrix.os == 'windows-latest'
+        run: pyinstaller --name ${{ env.BIN_NAME }} --onefile app/sentinel.py
+        shell: pwsh
+
+      - name: Build sentinel CLI (macOS ARM)
+        if: matrix.os == 'macos-latest'
+        run: pyinstaller --name ${{ env.BIN_NAME }} --onefile --target-arch arm64 app/sentinel.py
+        shell: bash
+
+      - name: Build sentinel CLI (macOS Intel / Linux)
+        if: matrix.os != 'windows-latest' && matrix.os != 'macos-latest'
+        run: pyinstaller --name ${{ env.BIN_NAME }} --onefile --target-arch x86_64 app/sentinel.py
+        shell: bash
 
       # --------- Package files into ZIP ---------
       - name: Package files into ZIP
@@ -105,6 +109,7 @@ jobs:
           rm -rf ${{ env.DIST_DIR }}/pack
 
           echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
+        shell: bash
 
       # --------- Upload artifact ---------
       - name: Upload artifact
