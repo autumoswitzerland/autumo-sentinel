@@ -106,9 +106,10 @@ jobs:
             macos-latest)    ZIP_BASENAME="$ZIP_BASENAME-macos-arm64" ;;
             ubuntu-latest)   ZIP_BASENAME="$ZIP_BASENAME-linux-x64" ;;
           esac
+          echo "ZIP base name: $ZIP_BASENAME"
 
           cd dist
-          ZIP_PATH="${ZIP_NAME}.zip"
+          ZIP_PATH="${ZIP_BASENAME}.zip"
           zip -r "$ZIP_PATH" * -x "*/.DS_Store" -x "*/__MACOSX"
           echo "ZIP_BASENAME=$ZIP_BASENAME" >> $GITHUB_ENV
           echo "ZIP file created: $ZIP_PATH"
