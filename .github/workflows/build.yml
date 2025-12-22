@@ -97,7 +97,9 @@ jobs:
           cp LICENSE "dist"
           cp README.md "dist"
           cd dist
+          shopt -s dotglob
           mv * ..
+          shopt -u dotglob
           cd ..
           rm -rf dist
         shell: bash
