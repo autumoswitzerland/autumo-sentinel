@@ -107,8 +107,9 @@ jobs:
             macos-latest)    ZIP_NAME="$ZIP_NAME-macos-arm64" ;;
             ubuntu-latest)   ZIP_NAME="$ZIP_NAME-linux-x64" ;;
           esac
-          ZIP_PATH="${DIST_DIR}/${ZIP_NAME}.zip"
 
+          ZIP_PATH="${DIST_DIR}/${ZIP_NAME}.zip"
+          mkdir -p "${DIST_DIR}"        # <-- sicherstellen, dass dist existiert
           cd "$PACK_DIR"
           zip -r "$ZIP_PATH" . -x "*/.DS_Store" -x "*/__MACOSX"
           cd ../..
