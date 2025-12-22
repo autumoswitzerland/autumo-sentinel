@@ -31,18 +31,24 @@ autumo Sentinel is released under **dual licensing**:
 ### Medium Severity Rules (Commercial Version)
 
 Medium severity rules focus on multi-step suspicious behavior, including:
+
 - dynamic code execution
 - script-based persistence mechanisms
 - environment and loader manipulation
 - network-assisted execution chains
 
+Version 1.0 of the ruleset contains **21** rules classified as medium severity.
+
 ### High Severity Rules (Commercial Version)
 
 High severity rules detect high-confidence malicious behavior, such as:
+
 - encoded or compressed payload execution
 - privilege escalation and capability abuse
 - dynamic loader and runtime manipulation
 - immediate execution of decoded payloads
+
+Version 1.0 of the ruleset contains **30** rules classified as medium severity.
 
 ---
 &copy; 2025 autumo GmbH
