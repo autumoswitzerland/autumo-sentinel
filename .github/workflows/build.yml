@@ -13,7 +13,7 @@ on:
       branch:
         description: 'Branch to build'
         required: true
-        default: 'main'
+        default: 'master'
 
 env:
   VERSION: 3.0.0
@@ -40,22 +40,17 @@ jobs:
         with:
           python-version: 3.12.0
 
-      - name: Check Python (macOS/Linux)
-        if: runner.os != 'Windows'
-        run: python --version
-
-      # --------- Install PyInstaller ---------
       - name: Install PyInstaller
         run: python -m pip install --upgrade pip setuptools wheel pyinstaller
 
       # --------- Clean previous builds ---------
       - name: Clean previous builds (Windows)
-        if: runner.os == 'Windows'
+        if: matrix.os == 'windows-latest'
         run: Remove-Item -Recurse -Force dist, build, sentinel.spec -ErrorAction SilentlyContinue
         shell: pwsh
 
       - name: Clean previous builds (macOS/Linux)
-        if: runner.os != 'Windows'
+        if: matrix.os != 'windows-latest'
         run: rm -rf ${{ env.DIST_DIR }} build sentinel.spec
         shell: bash
 
@@ -75,7 +70,7 @@ jobs:
         run: pyinstaller --name ${{ env.BIN_NAME }} --onefile --target-arch x86_64 app/sentinel.py
         shell: bash
 
-      # --------- Package ZIP (Windows) ---------
+      # --------- Package ZIP ---------
       - name: Package ZIP (Windows)
         if: matrix.os == 'windows-latest'
         run: |
@@ -86,43 +81,46 @@ jobs:
           Copy-Item -Force rules\rule-set-policy.md "$env:DIST_DIR\pack\rules"
           Copy-Item -Force README.md "$env:DIST_DIR\pack"
           Copy-Item -Force "$env:DIST_DIR\$env:BIN_NAME.exe" "$env:DIST_DIR\pack\"
-          
-          $ZIP_NAME="autumo-Sentinel-$env:VERSION-windows-x64"
-          Compress-Archive -Path "$env:DIST_DIR\pack\*" -DestinationPath "$env:DIST_DIR\$ZIP_NAME.zip" -Force
+
+          $ZIP_FILE="dist/autumo-Sentinel-$env:VERSION-windows-x64.zip"
+          Compress-Archive -Path "$env:DIST_DIR\pack\*" -DestinationPath $ZIP_FILE -Force
           Remove-Item -Recurse -Force "$env:DIST_DIR\pack"
-          echo "ZIP_NAME=$ZIP_NAME" >> $env:GITHUB_ENV
+          Write-Output "ZIP file created: $ZIP_FILE"
         shell: pwsh
 
-      # --------- Package ZIP (macOS/Linux) ---------
       - name: Package ZIP (macOS/Linux)
         if: matrix.os != 'windows-latest'
         run: |
-          mkdir -p ${{ env.DIST_DIR }}/pack/rules
-          cp -r config ${{ env.DIST_DIR }}/pack
-          cp -r patterns ${{ env.DIST_DIR }}/pack
-          cp rules/rules.* ${{ env.DIST_DIR }}/pack/rules
-          cp rules/rule-set-policy.md ${{ env.DIST_DIR }}/pack/rules
-          cp README.md ${{ env.DIST_DIR }}/pack
+          mkdir -p dist/pack/rules
+          cp -r config dist/pack
+          cp -r patterns dist/pack
+          cp rules/rules.* dist/pack/rules
+          cp rules/rule-set-policy.md dist/pack/rules
+          cp README.md dist/pack
+          cp dist/sentinel dist/pack/
 
-          cp ${{ env.DIST_DIR }}/${{ env.BIN_NAME }} ${{ env.DIST_DIR }}/pack/
-
-          ZIP_NAME="autumo-Sentinel-${{ env.VERSION }}"
+          ZIP_FILE="dist/autumo-Sentinel-${{ env.VERSION }}"
           case "${{ matrix.os }}" in
-            macos-15-intel) ZIP_NAME="$ZIP_NAME-macos-x64" ;;
-            macos-latest)    ZIP_NAME="$ZIP_NAME-macos-arm64" ;;
-            ubuntu-latest)   ZIP_NAME="$ZIP_NAME-linux-x64" ;;
+            macos-15-intel) ZIP_FILE="$ZIP_FILE-macos-x64" ;;
+            macos-latest)    ZIP_FILE="$ZIP_FILE-macos-arm64" ;;
+            ubuntu-latest)   ZIP_FILE="$ZIP_FILE-linux-x64" ;;
           esac
+          ZIP_FILE="$ZIP_FILE.zip"
 
-          cd ${{ env.DIST_DIR }}/pack
-          zip -r "../$ZIP_NAME.zip" . -x "*/.DS_Store" -x "*/__MACOSX"
+          cd dist/pack
+          zip -r "../$ZIP_FILE" . -x "*/.DS_Store" -x "*/__MACOSX"
           cd ../..
-          rm -rf ${{ env.DIST_DIR }}/pack
-          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
+          rm -rf dist/pack
+          echo "ZIP file created: $ZIP_FILE"
         shell: bash
 
       # --------- Upload artifact ---------
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.ZIP_NAME }}
-          path: ${{ env.DIST_DIR }}/$ZIP_NAME.zip
+          name: sentinel-release
+          path: |
+            dist/autumo-Sentinel-${{ env.VERSION }}-macos-x64.zip
+            dist/autumo-Sentinel-${{ env.VERSION }}-macos-arm64.zip
+            dist/autumo-Sentinel-${{ env.VERSION }}-linux-x64.zip
+            dist/autumo-Sentinel-${{ env.VERSION }}-windows-x64.zip
