@@ -56,13 +56,14 @@ jobs:
       - name: Build sentinel CLI
         run: |
           if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            pyinstaller --name ${{ env.BIN_NAME }} --onefile app/sentinel.py
+              pyinstaller --name sentinel --onefile app/sentinel.py
           elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-            # Apple Silicon
-            pyinstaller --name ${{ env.BIN_NAME }} --onefile --target-arch arm64 app/sentinel.py
+              # Apple Silicon
+              pyinstaller --name sentinel --onefile --target-arch arm64 app/sentinel.py
           else
-            # macos-15-intel oder Ubuntu/Linux
-            pyinstaller --name ${{ env.BIN_NAME }} --onefile --target-arch x86_64 app/sentinel.py
+              # macos-15-intel oder Ubuntu/Linux
+              pyinstaller --name sentinel --onefile --target-arch x86_64 app/sentinel.py
+          fi
 
       # --------- Package files into ZIP ---------
       - name: Package files into ZIP
