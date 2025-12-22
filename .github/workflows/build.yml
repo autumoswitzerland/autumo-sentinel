@@ -82,8 +82,10 @@ jobs:
           Copy-Item -Force LICENSE dist
 
           cd dist
-          $zipPath = "autumo-Sentinel-$env:VERSION-windows-x64.zip"
+          $zipBaseName = "autumo-Sentinel-$env:VERSION-windows-x64"
+          $zipPath = "${zipBaseName}.zip"
           Compress-Archive * -DestinationPath $zipPath -Force
+          "ZIP_BASENAME=$zipBaseName" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           Write-Output "ZIP file created: $zipPath"
         shell: pwsh
 
@@ -108,6 +110,7 @@ jobs:
           cd dist
           ZIP_PATH="${ZIP_NAME}.zip"
           zip -r "$ZIP_PATH" * -x "*/.DS_Store" -x "*/__MACOSX"
+          echo "ZIP_BASENAME=$ZIP_BASENAME" >> $GITHUB_ENV
           echo "ZIP file created: $ZIP_PATH"
         shell: bash
 
@@ -115,15 +118,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: |
-            if: matrix.os == 'macos-15-intel'
-              autumo-Sentinel-${{ env.VERSION }}-macos-x64
-            if: matrix.os == 'macos-latest'
-              autumo-Sentinel-${{ env.VERSION }}-macos-arm64
-            if: matrix.os == 'ubuntu-latest'
-              autumo-Sentinel-${{ env.VERSION }}-linux-x64
-            if: matrix.os == 'windows-latest'
-              autumo-Sentinel-${{ env.VERSION }}-windows-x64
+          name: ${{ env.ZIP_BASENAME }}
           path: |
             if: matrix.os == 'macos-15-intel'
               dist/autumo-Sentinel-${{ env.VERSION }}-macos-x64.zip
