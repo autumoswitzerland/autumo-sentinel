@@ -50,6 +50,12 @@ jobs:
 
       # --------- Clean previous builds ---------
       - name: Clean previous builds
+        if: runner.os == 'Windows'
+        run: Remove-Item -Recurse -Force dist, build, sentinel.spec -ErrorAction SilentlyContinue
+        shell: powershell
+
+      - name: Clean previous builds
+        if: runner.os != 'Windows'
         run: rm -rf ${{ env.DIST_DIR }} build sentinel.spec
 
       # --------- Build sentinel CLI ---------
