@@ -17,8 +17,9 @@ on:
 
 env:
   VERSION: 3.0.0
-  BIN_NAME: sentinel
+  PYTHON_VERSION: 3.12.0
   DIST_DIR: dist
+  BIN_NAME: sentinel
 
 jobs:
   build:
@@ -37,7 +38,7 @@ jobs:
         if: runner.os != 'Windows'
         uses: actions/setup-python@v4
         with:
-          python-version: 3.12.0
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install PyInstaller
         run: python -m pip install --upgrade pip setuptools wheel pyinstaller
@@ -45,53 +46,64 @@ jobs:
       # --------- Clean previous builds ---------
       - name: Clean previous builds (Windows)
         if: matrix.os == 'windows-latest'
-        run: Remove-Item -Recurse -Force dist, build, sentinel.spec -ErrorAction SilentlyContinue
+        run: Remove-Item -Recurse -Force ${{ env.DIST_DIR }}, build, ${{ env.BIN_NAME }}.spec -ErrorAction SilentlyContinue
         shell: pwsh
 
       - name: Clean previous builds (macOS/Linux)
         if: matrix.os != 'windows-latest'
-        run: rm -rf ${{ env.DIST_DIR }} build sentinel.spec
+        run: rm -rf ${{ env.DIST_DIR }} build ${{ env.BIN_NAME }}.spec
         shell: bash
 
       # --------- Build sentinel CLI ---------
       - name: Build CLI (Windows)
         if: matrix.os == 'windows-latest'
-        run: pyinstaller --name ${{ env.BIN_NAME }} --onefile --distpath ${{ env.DIST_DIR }} app/sentinel.py
+        run: pyinstaller --name ${{ env.BIN_NAME }} --onefile --distpath ${{ env.DIST_DIR }} app/${{ env.BIN_NAME }}.py
         shell: pwsh
 
       - name: Build CLI (macOS ARM)
         if: matrix.os == 'macos-latest'
-        run: pyinstaller --name ${{ env.BIN_NAME }} --onefile --target-arch arm64 --distpath ${{ env.DIST_DIR }} app/sentinel.py
+        run: pyinstaller --name ${{ env.BIN_NAME }} --onefile --target-arch arm64 --distpath ${{ env.DIST_DIR }} app/${{ env.BIN_NAME }}.py
         shell: bash
 
       - name: Build CLI (macOS Intel / Linux)
         if: matrix.os != 'windows-latest' && matrix.os != 'macos-latest'
-        run: pyinstaller --name ${{ env.BIN_NAME }} --onefile --target-arch x86_64 --distpath ${{ env.DIST_DIR }} app/sentinel.py
+        run: pyinstaller --name ${{ env.BIN_NAME }} --onefile --target-arch x86_64 --distpath ${{ env.DIST_DIR }} app/${{ env.BIN_NAME }}.py
         shell: bash
 
       # --------- Package ZIP ---------
       - name: Package ZIP (Windows)
         if: matrix.os == 'windows-latest'
         run: |
-          New-Item -ItemType Directory -Force -Path "dist\rules" | Out-Null
-          Copy-Item -Recurse -Force config dist
-          Copy-Item -Recurse -Force patterns dist
-          Copy-Item -Force rules\rules.low* "dist\rules"
-          Copy-Item -Force rules\rule-set-policy.md "dist\rules"
-          Copy-Item -Force README.md dist
-          Copy-Item -Force LICENSE dist
+          New-Item -ItemType Directory -Force -Path "${{ env.DIST_DIR }}\rules" | Out-Null
+          Copy-Item -Recurse -Force config "${{ env.DIST_DIR }}"
+          Copy-Item -Recurse -Force patterns "${{ env.DIST_DIR }}"
+          Copy-Item -Force rules\rules.low* "${{ env.DIST_DIR }}\rules"
+          Copy-Item -Force rules\rule-set-policy.md "${{ env.DIST_DIR }}\rules"
+          Copy-Item -Force README.md "${{ env.DIST_DIR }}"
+          Copy-Item -Force LICENSE "${{ env.DIST_DIR }}"
+
+          $ZIP_BASENAME = "autumo-Sentinel-${{ env.VERSION }}-windows-x64"
+          "ZIP_BASENAME=$ZIP_BASENAME" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
         shell: pwsh
 
       - name: Package ZIP (macOS/Linux)
         if: matrix.os != 'windows-latest'
         run: |
-          mkdir -p "dist/rules"
-          cp -r config "dist"
-          cp -r patterns "dist"
-          cp rules/rules.low* "dist/rules"
-          cp rules/rule-set-policy.md "dist/rules"
-          cp LICENSE "dist"
-          cp README.md "dist"
+          mkdir -p "${{ env.DIST_DIR }}/rules"
+          cp -r config "${{ env.DIST_DIR }}"
+          cp -r patterns "${{ env.DIST_DIR }}"
+          cp rules/rules.low* "${{ env.DIST_DIR }}/rules"
+          cp rules/rule-set-policy.md "${{ env.DIST_DIR }}/rules"
+          cp LICENSE "${{ env.DIST_DIR }}"
+          cp README.md "${{ env.DIST_DIR }}"
+
+          ZIP_BASENAME="autumo-Sentinel-${{ env.VERSION }}"
+          case "${{ matrix.os }}" in
+            macos-15-intel)  ZIP_BASENAME="$ZIP_BASENAME-macos-x64" ;;
+            macos-latest)    ZIP_BASENAME="$ZIP_BASENAME-macos-arm64" ;;
+            ubuntu-latest)   ZIP_BASENAME="$ZIP_BASENAME-linux-x64" ;;
+          esac
+          echo "ZIP_BASENAME=$ZIP_BASENAME" >> $GITHUB_ENV
         shell: bash
 
       # --------- Upload artifact ---------
@@ -99,4 +111,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ZIP_BASENAME }}
-          path: dist/*
+          path: ${{ env.DIST_DIR }}/*
