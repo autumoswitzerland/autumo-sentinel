@@ -94,8 +94,8 @@ jobs:
           cp -r patterns "${{ env.DIST_DIR }}"
           cp rules/rules.low* "${{ env.DIST_DIR }}/rules"
           cp rules/rule-set-policy.md "${{ env.DIST_DIR }}/rules"
-          cp LICENSE "${{ env.DIST_DIR }}"
           cp README.md "${{ env.DIST_DIR }}"
+          cp LICENSE "${{ env.DIST_DIR }}"
 
           ZIP_BASENAME="autumo-Sentinel-${{ env.VERSION }}"
           case "${{ matrix.os }}" in
