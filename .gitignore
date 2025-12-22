@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environment
+venv/
+
+# Build artifacts
+build/
+dist/
+*.spec
+
+# MacOS
+.DS_Store
+
+# Logs
+*.log
+*.csv
+
+# Other
+etc/
+log/
+LICENSE_COMMERCIAL.html

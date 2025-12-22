@@ -1,0 +1,138 @@
+{
+  "version": "1.0",
+  "description": "9 LOW severity heuristic rules for detecting suspicious but non-signature-based indicators.",
+  "rules": [
+    {
+      "id": "js_string_reconstruction",
+      "name": "JS string reconstruction primitive",
+      "description": "Detects String.fromCharCode usage as weak obfuscation signal.",
+      "false_positive_note": "Extremely common in minified or bundled JavaScript.",
+      "type": "keyword_combination",
+      "scope": "line",
+      "severity": "low",
+      "only_if_no_match": true,
+      "applies_to": { "extensions": ["javascript"] },
+      "parameters": { "keywords": ["fromCharCode", "eval"] },
+      "heuristic_threshold": 3
+    },
+    {
+      "id": "js_binary_buffer_primitive",
+      "name": "JS binary buffer primitive",
+      "description": "Detects Uint8Array usage combined with eval.",
+      "false_positive_note": "Very common in cryptographic or binary-processing libraries.",
+      "type": "keyword_combination",
+      "scope": "line",
+      "severity": "low",
+      "only_if_no_match": true,
+      "applies_to": { "extensions": ["javascript"] },
+      "parameters": { "keywords": ["Uint8Array", "eval"] },
+      "heuristic_threshold": 3
+    },
+    {
+      "id": "js_btoa_eval",
+      "name": "btoa combined with eval",
+      "description": "Detects use of btoa in combination with eval, which may indicate encoding and subsequent execution of dynamically generated code.",
+      "false_positive_note": "May appear in legitimate encoding or asset handling scripts.",
+      "type": "keyword_combination",
+      "scope": "line",
+      "severity": "low",
+      "only_if_no_match": true,
+      "applies_to": { "extensions": ["javascript", "typescript"] },
+      "parameters": { "keywords": ["btoa", "eval"] },
+      "heuristic_threshold": 3
+    },
+    {
+      "id": "long_string_generic",
+      "name": "Unusually long string",
+      "description": "Detects unusually long strings which may indicate embedded payloads or obfuscation.",
+      "false_positive_note": "May trigger on minified code or embedded assets.",
+      "type": "string_length",
+      "scope": "line",
+      "severity": "low",
+      "only_if_no_match": true,
+      "applies_to": { "extensions": ["unix_shell", "javascript", "python"] },
+      "parameters": { "min_length": 300 },
+      "heuristic_threshold": 5
+    },
+    {
+      "id": "js_aes128cbc_eval",
+      "name": "AES-128-CBC combined with eval",
+      "description": "Detects use of AES-128-CBC encryption combined with eval, which may indicate dynamic decryption and execution of code.",
+      "false_positive_note": "Can appear in legitimate decryption routines.",
+      "type": "keyword_combination",
+      "scope": "line",
+      "severity": "low",
+      "only_if_no_match": true,
+      "applies_to": { "extensions": ["javascript", "typescript"] },
+      "parameters": { "keywords": ["AES-128-CBC", "eval"] },
+      "heuristic_threshold": 3
+    },
+    {
+      "id": "js_aes256cbc_eval",
+      "name": "AES-256-CBC combined with eval",
+      "description": "Detects use of AES-256-CBC encryption combined with eval, which may indicate dynamic decryption and execution of code.",
+      "false_positive_note": "Can appear in legitimate decryption routines.",
+      "type": "keyword_combination",
+      "scope": "line",
+      "severity": "low",
+      "only_if_no_match": true,
+      "applies_to": { "extensions": ["javascript", "typescript"] },
+      "parameters": { "keywords": ["AES-256-CBC", "eval"] },
+      "heuristic_threshold": 3
+    },
+    {
+      "id": "suspicious_env_var_usage",
+      "name": "Suspicious environment variable usage",
+      "description": "Detects unusual access to environment variables for execution.",
+      "false_positive_note": "Common in CI/CD pipelines.",
+      "type": "keyword_combination",
+      "scope": "line",
+      "severity": "low",
+      "only_if_no_match": true,
+      "applies_to": { "extensions": ["unix_shell","python"] },
+      "parameters": { "keywords": ["ENV", "exec"] },
+      "heuristic_threshold": 2
+    },    
+    {
+      "id": "obfuscated_variable_names",
+      "name": "Highly obfuscated variable names",
+      "description": "Detects very short or random-looking variable names.",
+      "false_positive_note": "Common in minified or generated code.",
+      "type": "obfuscation_vars",
+      "scope": "file",
+      "severity": "low",
+      "only_if_no_match": true,
+      "applies_to": { "extensions": ["javascript","python"] },
+      "parameters": {
+        "min_ratio": 0.75,
+        "min_entropy_hits": 5,
+        "entropy_threshold": 3.8,
+        "require_hex_prefix": true,
+        "require_long_lines": true,
+        "min_long_lines": 3,
+        "min_tokens": 50
+      }
+    },
+    {
+      "id": "excessive_string_concatenation",
+      "name": "Excessive string concatenation",
+      "description": "Detects repeated string concatenation that may indicate obfuscation in project-written JavaScript code. Common in code generators and minified third-party libraries.",
+      "false_positive_note": "This pattern frequently appears in code generators, bundled/minified code, and npm cache modules. Treat as informational unless combined with other suspicious patterns.",
+      "type": "obfuscation_strings",
+      "scope": "file",
+      "severity": "low",
+      "only_if_no_match": true,
+      "applies_to": { "extensions": ["javascript"] },
+      "parameters": {
+        "min_score": 25,
+        "min_string_literals": 5,
+        "weights": {
+          "plus": 1.0,
+          "concat": 2.0,
+          "escape": 2.5,
+          "short_string": 0.2
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+# ------------------------------------------------------------
+# Simple Hits (Early Warning)
+# ------------------------------------------------------------
+"base64 -d"
+"base64 --decode"
+"hex2bin"
+"os.system("
+"subprocess.call"
+"subprocess.Popen"
+"ssh -R"
+"ssh -L"
+
+# ------------------------------------------------------------
+# Cross‑Platform / High‑Signal
+# ------------------------------------------------------------
+"reverse shell"
+"bind shell"
+"netcat "
+"setcap "
+
+# ------------------------------------------------------------
+# Windows / PowerShell
+# ------------------------------------------------------------
+"powershell -EncodedCommand"
+"IEX "
+"IEX("
+"mshta "
+"certutil -decode"
+"certutil -decodehex"
+"reg add "
+"reg delete "
+"schtasks "
+
+# ------------------------------------------------------------
+# Persistence
+# ------------------------------------------------------------
+"cron.d/"
+"/etc/cron."
+"rc.local"
+"init.d/"
+"systemd.service"
+"ExecStart="

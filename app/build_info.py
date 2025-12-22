@@ -1,0 +1,2 @@
+COMMERCIAL_BUILD = False
+VERSION = "3.0.0"

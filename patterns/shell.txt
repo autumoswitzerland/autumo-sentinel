@@ -1,0 +1,69 @@
+# ------------------------------------------------------------
+# Inline Code Execution / Command Injection
+# ------------------------------------------------------------
+"bash -c"
+"sh -c"
+"node -e"
+"python -c"
+"perl -e"
+"ruby -e"
+
+# ------------------------------------------------------------
+# Permission Changes & Temporary File Operations (Early Warning)
+# ------------------------------------------------------------
+"chmod 777"
+"chmod +x"
+"chown "
+"touch /tmp"
+"mktemp"
+
+# ------------------------------------------------------------
+# Archive, Encoding & Cryptographic Decode Operations
+# ------------------------------------------------------------
+"unzip "
+"openssl enc"
+"base64 -d"
+"base64 -D"
+"uuencode"
+"uudecode"
+"gpg --decrypt"
+
+# ------------------------------------------------------------
+# Service Management & Scheduled Task Persistence
+# ------------------------------------------------------------
+"systemctl start"
+"systemctl enable"
+"crontab -l"
+"crontab -e"
+
+# ------------------------------------------------------------
+# Remote Access, SSH & File Transfer Utilities
+# ------------------------------------------------------------
+"ssh-keygen"
+"ssh-copy-id"
+"scp "
+"sftp "
+
+# ------------------------------------------------------------
+# Reverse / Bind Shell & Network Listeners (High Signal)
+# ------------------------------------------------------------
+"nc -l"
+"nc -e"
+"ncat -e"
+
+# ------------------------------------------------------------
+# Lightweight File Hosting / Payload Staging
+# ------------------------------------------------------------
+"python -m SimpleHTTPServer"
+"python -m http.server"
+
+# ------------------------------------------------------------
+# Windows PowerShell Execution & Defense Evasion
+# ------------------------------------------------------------
+"powershell -nop -w hidden -enc"
+"Set-ExecutionPolicy"
+"Start-Process"
+"Invoke-Expression"
+"Add-MpPreference"
+"schtasks /create"
+"schtasks /run"

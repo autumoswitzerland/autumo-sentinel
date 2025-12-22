@@ -1,0 +1,188 @@
+{
+  "version": "3.0.0",
+  "python_min_version": "3.10",
+  "log_file": "log/scan.log",
+  "csv_file": "log/scan-hits.csv",
+  "csv_pivot_file": "log/scan-hits-pivot.csv",
+  "debug_mode": false,
+
+  "limits": {
+    "max_line_length": 100,
+    "max_line_rule_hit_length": 100,
+    "max_lines_file_scan": 200,
+    "max_chars_file_scan": 20000
+  },
+  
+  "patterns": {
+    "files": "./patterns/files.txt",
+    "shell": "./patterns/shell.txt",
+    "shell_rx": "./patterns/shell_rx.txt",
+    "content": "./patterns/content.txt",
+    "content_rx": "./patterns/content_rx.txt"
+  },
+
+  "rules_path": "rules/",
+
+  "artifacts": {
+    "extensions": {
+      "unix_shell": [
+        ".sh",
+        ".bash",
+        ".zsh",
+        ".ksh",
+        ".csh",
+        ".tcsh",
+        ".fish",
+        ".ash"
+      ],
+      "windows_shell": [
+        ".cmd",
+        ".bat",
+        ".ps1",
+        ".psm1"
+      ],
+      "javascript": [
+        ".js",
+        ".jsx",
+        ".mjs",
+        ".cjs"
+      ],
+      "typescript": [
+        ".ts",
+        ".tsx"
+      ],
+      "python": [
+        ".py"
+      ],
+      "php": [
+        ".php"
+      ],
+      "ruby": [
+        ".rb"
+      ],
+      "go": [
+        ".go"
+      ],
+      "java": [
+        ".java"
+      ],
+      "c_cpp": [
+        ".c",
+        ".cpp"
+      ],
+      "csharp": [
+        ".cs",
+        ".csx"
+      ],
+      "vbnet": [
+        ".vb",
+        ".vbs"
+      ],
+      "rust": [
+        ".rs"
+      ],
+      "lua": [
+        ".lua"
+      ],
+      "perl": [
+        ".pl"
+      ],
+      "swift": [
+        ".swift"
+      ],
+      "config_misc": [
+        ".conf",
+        ".config"
+      ]
+    },
+
+    "content_files": [
+      "package.json",
+      "composer.json",
+      "requirements.txt",
+      "pyproject.toml",
+      "Pipfile",
+      "go.mod",
+      "Cargo.toml",
+      "pom.xml",
+      "settings.xml",
+      "web.xml",
+      "applicationContext.xml",
+      "hibernate.cfg.xml"
+    ]  
+  },
+
+  "cache_dirs": {
+    "linux": {
+      "local": [
+        "$HOME/.bun",
+        "$HOME/.npm",
+        "$HOME/.cache/npm",
+        "$HOME/.cache/node",
+        "$HOME/.cache/yarn",
+        "$HOME/.cache/bun"
+      ],
+      "global": [
+        "/tmp"
+      ]
+    },
+
+    "macos": {
+      "local": [
+        "$HOME/.bun",
+        "$HOME/.npm",
+        "$HOME/.cache/npm",
+        "$HOME/.cache/node",
+        "$HOME/.cache/yarn",
+        "$HOME/.cache/bun",
+        "$HOME/Library/Caches/npm",
+        "$HOME/Library/Caches/node"
+      ],
+      "global": [
+        "/tmp"
+      ]
+    },
+
+    "windows": {
+      "local": [
+        "${APPDATA}/npm-cache",
+        "${LOCALAPPDATA}/npm-cache",
+        "${LOCALAPPDATA}/Yarn/Cache",
+        "${LOCALAPPDATA}/bun",
+        "${USERPROFILE}/.bun"
+      ],
+      "global": [
+        "${LOCALAPPDATA}/Temp"
+      ]
+    }
+  },
+
+  "safety": {
+    "root_protection": true,
+    "blocked_paths": [
+      "/",
+      "/boot",
+      "/dev",
+      "/proc",
+      "/sys",
+      "/run",
+      "/usr",
+      "/bin",
+      "/sbin",
+      "/lib",
+      "/lib64",
+      "/etc",
+      "/home",
+      "/Users",
+      "/Volumes",
+      "/mnt"
+    ],
+
+    "blocked_windows_paths": [
+      "C:\\\\",
+      "C:\\\\Windows",
+      "C:\\\\Program Files",
+      "C:\\\\Program Files (x86)"
+    ]
+  }
+}

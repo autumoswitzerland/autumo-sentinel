@@ -1,0 +1,106 @@
+# ------------------------------------------------------------------------------
+# autumo Sentinel – Multi-Stage Supply-Chain Malware Scanner & Code Forensics
+# Version 3.0 | Copyright (c) 2025 autumo GmbH
+# SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-commercial
+# Dual license: GPL-3.0 (https://www.gnu.org/licenses/gpl-3.0.en.html)
+# ------------------------------------------------------------------------------
+
+name: Build autumo Sentinel Releases
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+env:
+  VERSION: 3.0.0
+  BIN_NAME: sentinel
+  DIST_DIR: dist
+  PACK_DIR: pack
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [macos-15-intel, macos-latest, ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    name: Build ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.12
+        if: runner.os != 'Windows'
+        run: |
+          brew install pyenv || true
+          pyenv install -s 3.12.0
+          pyenv local 3.12.0
+          python --version
+
+      - name: Install PyInstaller
+        run: |
+          python -m pip install --upgrade pip setuptools wheel pyinstaller
+
+      - name: Clean previous builds
+        run: |
+          rm -rf ${{ env.DIST_DIR }} build sentinel.spec
+
+      - name: Build sentinel CLI
+        run: |
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            pyinstaller --name ${{ env.BIN_NAME }} --onefile app/sentinel.py
+          elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+            # Apple Silicon
+            pyinstaller --name ${{ env.BIN_NAME }} --onefile --target-arch arm64 app/sentinel.py
+          else
+            # macos-15-intel or Linux
+            pyinstaller --name ${{ env.BIN_NAME }} --onefile --target-arch x86_64 app/sentinel.py
+
+      - name: Package files into ZIP
+        run: |
+          # Prepare package folder
+          mkdir -p ${{ env.DIST_DIR }}/pack/rules
+          cp -r config ${{ env.DIST_DIR }}/pack
+          cp -r patterns ${{ env.DIST_DIR }}/pack
+          cp rules/rules.* ${{ env.DIST_DIR }}/pack/rules
+          cp rules/rule-set-policy.md ${{ env.DIST_DIR }}/pack/rules
+          cp README.md ${{ env.DIST_DIR }}/pack
+
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            cp ${{ env.DIST_DIR }}\${{ env.BIN_NAME }}.exe ${{ env.DIST_DIR }}/pack/
+          else
+            cp ${{ env.DIST_DIR }}/${{ env.BIN_NAME }} ${{ env.DIST_DIR }}/pack/
+          fi
+
+          # ZIP name
+          ZIP_NAME="autumo-Sentinel-${{ env.VERSION }}"
+
+          if [[ "${{ matrix.os }}" == "macos-15-intel" ]]; then
+            ZIP_NAME="$ZIP_NAME-macos-x64"
+          elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+            ZIP_NAME="$ZIP_NAME-macos-arm64"
+          elif [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            ZIP_NAME="$ZIP_NAME-linux-x64"
+          elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            ZIP_NAME="$ZIP_NAME-windows-x64"
+          fi
+
+          # Create ZIP
+          cd ${{ env.DIST_DIR }}/pack
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            powershell Compress-Archive -Path * -DestinationPath "../$ZIP_NAME.zip"
+          else
+            zip -r "../$ZIP_NAME.zip" . -x "*/.DS_Store" -x "*/__MACOSX"
+          fi
+          cd ../..
+          rm -rf ${{ env.DIST_DIR }}/pack
+
+          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ZIP_NAME }}
+          path: ${{ env.DIST_DIR }}/$ZIP_NAME.zip
