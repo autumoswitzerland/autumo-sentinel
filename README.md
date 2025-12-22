@@ -26,8 +26,8 @@ autumo Sentinel is a heuristic-driven, multi-stage scanner for detecting supply-
   - Ruby
   - ...and more
 - ⚡ **No External Dependencies**
-  Uses **only Python core libraries**; no virtual environment or package installation is required.
-  Python 3.10+ recommended. Tested on Windows, macOS, and Linux.
+  - Uses **only Python core libraries**; no virtual environment or package installation is required.
+  - Python 3.10+ recommended. Tested on Windows, macOS, and Linux.
 
 ## Performance Overview
 
@@ -242,7 +242,7 @@ autumo Sentinel writes scan results and debug information according to the confi
 | `csv_file` | Detailed scan hits per file, filename, pattern and rule | `log/scan-hits.csv` |
 | `csv_pivot_file` | Pivoted summary of scan hits per pattern/rule for analysis | `log/scan-hits-pivot.csv` |
 | `log_file` | General scan log, warnings, and debug info | `log/scan.log` |
-| `debug_mode` | Enables verbose logging for troubleshooting | `true` |
+| `debug_mode` | Enables verbose logging for troubleshooting | `false` |
 
 ### Notes
 
