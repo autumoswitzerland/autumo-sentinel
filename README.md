@@ -254,6 +254,9 @@ autumo Sentinel writes scan results and debug information according to the confi
 - The CSV reports contain structured information about each detection: file, line (if applicable), rule, severity, and matched indicators.  
 - The log file includes runtime messages, errors, and optionally debug information depending on `debug_mode`.
 
+
+---
+
 ## Editions & Licensing
 
 autumo Sentinel is **dual-licensed**, with separate Open Source and Commercial editions.
@@ -262,7 +265,7 @@ autumo Sentinel is **dual-licensed**, with separate Open Source and Commercial e
 
 ## Editions & Licensing
 
-autumo Sentinel is **dual-licensed**, with separate Open Source and Commercial editions.
+autumo Sentinel is **dual-licensed**, with one Open Source license and three different Commercial licenses, depending on the intended use.
 
 | Edition | License | Includes | Notes |
 |---------|---------|----------|-------|
