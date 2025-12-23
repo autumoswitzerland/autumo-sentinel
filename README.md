@@ -271,11 +271,20 @@ autumo Sentinel is **dual-licensed**, with separate Open Source and Commercial e
 
 ### When a Commercial License is Required
 
-A commercial license is required if you:
+There are different types of commercial licenses, depending on how you intend to use the software.
 
-- Use Medium or High severity rules
-- Integrate Sentinel into proprietary software
-- Provide Sentinel as a service
+**autumo Products General License:**
+
+- Use Medium or High severity rules, including occasional updates.
+
+**Autumo Enterprise Edition License:**
+
+- Provides extended support and allows usage across the entire company (based on number of users and usage).
+
+**Extended Licenses:**
+
+- Integration of Sentinel into proprietary software.
+- Providing Sentinel as a service.
 
 ---
 &copy; 2025 autumo GmbH
