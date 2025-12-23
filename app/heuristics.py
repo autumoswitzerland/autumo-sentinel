@@ -288,15 +288,6 @@ class HeuristicEngine:
         """
         return scan_context in contexts
 
-    def _format_hit(self, rule: HeuristicRule) -> Dict[str, Any]:
-        return {
-            "rule_id": rule.id,
-            "rule_name": rule.name,
-            "severity": rule.severity,
-            "false_positive_note": rule.false_positive_note,
-            "type": rule.type,
-        }
-
     # ------------------------------------------------------------
     # Helpers
     # ------------------------------------------------------------
