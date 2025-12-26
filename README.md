@@ -34,6 +34,7 @@ autumo Sentinel is a heuristic-driven, multi-stage scanner for detecting supply-
 The following chart provides an overview of **autumo Sentinel v3.0** across 12 runs with different combinations of severity levels and scan options. It visualizes the relationship between **total hits** and **scan duration**, highlighting the impact of severity and forensic-related options.
 
 ![autumo Sentinel Hits vs Duration](app/resources/performance.png)
+**Note:** Figure is outdated – needs updating.
 
 Each point represents a single run:
 - **Labels**:
