@@ -423,8 +423,9 @@ class HeuristicEngine:
         Key concepts:
         -------------
         - Single-group rules:
-            * At least 2 keywords must be present by default (enforced to reduce false positives).
-            * Threshold can be configured via 'threshold' parameter, but never below 2.
+            * At least **1 keyword** must be present by default if the group contains only a single keyword or regex.
+            * If the group contains multiple keywords, at least **2 keywords** must match by default.
+            * Threshold can be configured via the 'threshold' parameter, but will be automatically corrected if below the minimum (1 or 2 depending on group size).
 
         - Multi-group rules:
             * Each group is treated as a semantic AND (1 keyword per group must appear).
@@ -434,8 +435,7 @@ class HeuristicEngine:
         - Keyword types:
             * String keywords: compared case-insensitively.
             * List of strings: all treated case-insensitively.
-            * Dictionary with 'regex': compiled into a Python regex with optional flags
-            ('IGNORECASE', 'MULTILINE').
+            * Dictionary with 'regex': compiled into a Python regex with optional flags ('IGNORECASE', 'MULTILINE').
             * Invalid types are skipped with a warning.
 
         Normalization:
@@ -489,23 +489,38 @@ class HeuristicEngine:
         groups = rule.parameters.get("keywords", [])  # Each group is a list of keywords or a regex
         thresholds = rule.parameters.get("threshold", [])
 
-        # Normalize groups: convert all keywords to lowercase, compile regexes
+        # --- Normalize groups: convert all keywords to lowercase, compile regexes ---
         normalized_groups = []
         for g in groups:
             try:
                 if isinstance(g, dict) and "regex" in g:
-                    # If a regex dict is provided, compile it with optional flags
+                    # Single regex dict as a group
                     flags = 0
                     if "flags" in g:
                         if "IGNORECASE" in g["flags"]:
                             flags |= re.IGNORECASE
                         if "MULTILINE" in g["flags"]:
                             flags |= re.MULTILINE
-                    normalized_groups.append({"regex": re.compile(g["regex"], flags)})
+                    normalized_groups.append([{"regex": re.compile(g["regex"], flags)}])
 
                 elif isinstance(g, list):
-                    # Convert all strings in list to lowercase
-                    normalized_groups.append([kw.lower() for kw in g])
+                    # List of keywords or regex dicts
+                    normalized_subgroup = []
+                    for kw in g:
+                        if isinstance(kw, str):
+                            normalized_subgroup.append(kw.lower())
+                        elif isinstance(kw, dict) and "regex" in kw:
+                            flags = 0
+                            if "flags" in kw:
+                                if "IGNORECASE" in kw["flags"]:
+                                    flags |= re.IGNORECASE
+                                if "MULTILINE" in kw["flags"]:
+                                    flags |= re.MULTILINE
+                            normalized_subgroup.append({"regex": re.compile(kw["regex"], flags)})
+                        else:
+                            if self.log:
+                                self.log.write(f"Warning: Invalid keyword {kw} in group {g}, skipping")
+                    normalized_groups.append(normalized_subgroup)
 
                 elif isinstance(g, str):
                     # Single string keyword -> wrap in list
@@ -531,13 +546,25 @@ class HeuristicEngine:
 
         # --- Single-group rule handling ---
         if amount == 1:
+            group_size = len(normalized_groups[0])
+            min_threshold = 1 if group_size == 1 else 2
+
             if not thresholds:
-                thresholds = [2]  # Default threshold = 2 keywords
-            elif thresholds[0] < 2:
-                # Always require at least 2 keywords in a single-group rule
-                if self.log:
-                    self.log.write(f"Warning: Rule '{rule.id}': single group threshold {thresholds[0]} increased to 2\n")
-                thresholds[0] = 2
+                # Default = 2, unless only 1 keyword is available
+                thresholds = [min_threshold]
+                if self.log and self.debug_mode:
+                    self.log.write(
+                        f"Info: Rule '{rule.id}': single group threshold automatically set to {thresholds[0]} "
+                        f"(group size = {group_size})\n"
+                    )
+
+            elif thresholds[0] < 1:
+                # Minimum threshold depends on group size
+                if self.log and self.debug_mode:
+                    self.log.write(
+                        f"Warning: Rule '{rule.id}': single group threshold {thresholds[0]} increased to {min_threshold}\n"
+                    )
+                thresholds[0] = min_threshold
 
         # --- Multi-group rule handling ---
         else:

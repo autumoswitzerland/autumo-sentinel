@@ -356,7 +356,7 @@ class DevScanner:
 
         # Load extensions for comment stripping
         self.block_comment_extensions = [
-            ext for key in ["c_cpp", "javascript", "typescript", "java", "csharp"] 
+            ext for key in ["c_cpp", "javascript", "typescript", "java", "csharp", "php"] 
             for ext in self.config["artifacts"]["extensions"].get(key, [])
         ]
 
@@ -455,7 +455,7 @@ class DevScanner:
     def sanitize_csv_value(s: str, max_len: int, limit: bool = True, remove_line_feed: bool = True) -> str:
         """
         CSV-sanitizes a string:
-        - Escapes semicolons and double quotes
+        - Escapes double quotes only
         - Replaces newlines with spaces
         - Optionally truncates long lines
         """
@@ -463,14 +463,21 @@ class DevScanner:
             s = s.pattern
         if s is None:
             return ""
-        s = s.replace(";", "\\;").replace('"', '""')
+        
+        # Escape only double quotes
+        s = s.replace('"', '""')
+        
         if remove_line_feed:
             s = s.replace("\n", " ").replace("\r", " ")
+        
         s = s.strip()
         if not s:
             return ""
+        
         if limit and len(s) > max_len:
             s = s[:max_len] + " [truncated]"
+        
+        # Wrap in double quotes (so ; is safe inside)
         return f'"{s}"'
     
     @staticmethod

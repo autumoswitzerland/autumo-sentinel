@@ -5,17 +5,30 @@
 
 # --- Usage helper ---
 usage() {
-  echo "Usage: $0 <scan-directory>"
+  echo "Usage: $0 <severity> <scan-directory>"
+  echo
+  echo "Severity levels: low, medium, high"
   echo
   echo "Example:"
-  echo "  $0 /path/to/project"
+  echo "  $0 medium /path/to/project"
   exit 1
 }
 
-# --- Check parameter ---
+# --- Check parameters ---
 [ -z "$1" ] && usage
+[ -z "$2" ] && usage
 
-SCAN_DIR="$1"
+SEVERITY="$1"
+SCAN_DIR="$2"
+
+# --- Validate severity ---
+case "$SEVERITY" in
+  low|medium|high) ;;
+  *) 
+    echo "Error: Invalid severity level: $SEVERITY"
+    usage
+    ;;
+esac
 
 # --- Check directory exists ---
 if [ ! -d "$SCAN_DIR" ]; then
@@ -32,7 +45,7 @@ python3 app/sentinel.py "$SCAN_DIR" \
   -l \
   -g \
   -k \
-  --heuristics-level low
+  --heuristics-level "$SEVERITY"
   # --forensic
   # --no-bail-out
   # --all-matches

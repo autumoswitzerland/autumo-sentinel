@@ -55,9 +55,11 @@ Detects semantic combinations of suspicious keywords or patterns.
 | `threshold` | list of integers | Required matches per keyword group |
 
 - **Scope**: line and file
-- **Single keyword group:** at least **2 different keywords** must match
-- **Multiple keyword groups:** at least **1 keyword per group** must match
-- Invalid thresholds are automatically corrected
+- **Single keyword group:** 
+    - At least **1 keyword** must match by default if the group contains only a single keyword or regex.  
+    - If the group contains multiple keywords, at least **2 keywords** must match by default.  
+- **Multiple keyword groups:** at least **1 keyword per group** must match  
+- Invalid thresholds are automatically corrected (single-group thresholds cannot go below 1 or 2 depending on group size)
 
 #### Using Regular Expressions
 

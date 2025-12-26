@@ -22,8 +22,6 @@
 # Windows / PowerShell
 # ------------------------------------------------------------
 "powershell -EncodedCommand"
-"IEX "
-"IEX("
 "mshta "
 "certutil -decode"
 "certutil -decodehex"
