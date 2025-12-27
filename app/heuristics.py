@@ -36,7 +36,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Union, Tuple, Dict, List, Any
 
-import emoji as e
+import emoji as em
 
 # ------------------------------------------------------------
 # Constants
@@ -242,7 +242,7 @@ class HeuristicEngine:
         rules_raw = config.get("rules", [])
 
         if DEBUG_RULES_OUTPUT and self.debug_mode:
-            self.info("📜 Heuristic Engine - Rules loaded:")
+            self.info(f"{em.engine()}Heuristic Engine - Rules loaded:")
 
         for raw in rules_raw:
             self._load_single_rule(raw)
@@ -342,7 +342,7 @@ class HeuristicEngine:
     # ------------------------------------------------------------
     def die(self, msg: str = "") -> None:
         if msg:
-            print(f"\n❌ ERROR: {msg}\n")
+            print(f"\n{em.err()}ERROR: {msg}\n")
         if self.debug_mode and self.log:
             self.log.write(f"Stacktrace: {traceback.format_exc()}\n")
         sys.exit(1)

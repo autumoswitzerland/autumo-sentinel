@@ -24,30 +24,28 @@ SYSTEM = platform.system()
 # Symbol definitions per platform
 if SYSTEM == "Darwin":
     # macOS: real emojis
-    SCAN = "🔍"
-    GLOBAL = "🌍"
-    SUCCESS = "✅"
-    ERROR = "❌"
-    WARNING = "⚠️ "
-    INFO = "ℹ️ "
-    DISK = "💾"
-    ORDER = "🔢"
-    ENGINE = "📜"
-    ALIEN = "👾"
-    LIGHTNING = "⚡️"
+    SCAN = "🔍 "
+    GLOBAL = "🌍 "
+    SUCCESS = "✅ "
+    ERROR = "❌ "
+    WARNING = "⚠️  "
+    INFO = "ℹ️  "
+    DISK = "💾 "
+    ORDER = "🔢 "
+    ENGINE = "📜 "
+    LOGO = "👾⚡️ "
 else:
     # Windows and Linux: only safe ASCII/Unicode characters
     SCAN = ""
     GLOBAL = ""
-    SUCCESS = "√"
-    ERROR = "x"
-    WARNING = "!"
-    INFO = "i"
+    SUCCESS = "[√] "
+    ERROR = "[x] "
+    WARNING = "[!] "
+    INFO = "[i] "
     DISK = ""
     ORDER = ""
     ENGINE = ""
-    ALIEN = ""
-    LIGHTNING = ""
+    LOGO = ""
 
 # Functions
 def scan() -> str:
@@ -77,8 +75,5 @@ def order() -> str:
 def engine() -> str:
     return ENGINE
 
-def alien() -> str:
-    return ALIEN
-
-def lightning() -> str:
-    return LIGHTNING
+def logo() -> str:
+    return LOGO

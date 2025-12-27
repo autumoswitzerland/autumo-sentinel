@@ -43,7 +43,7 @@ from typing import List, Dict, Tuple
 from collections import defaultdict
 from dataclasses import dataclass, field
 
-import emoji as e
+import emoji as em
 from heuristics import HeuristicEngine
 from build_info import COMMERCIAL_BUILD, VERSION
 
@@ -86,14 +86,14 @@ class FileHeuristicContext:
 # ------------------------------------------------------------
 def die(msg: str = "") -> None:
     if msg:
-        print(f"\n❌ ERROR: {msg}\n")
+        print(f"\n{em.err()}ERROR: {msg}\n")
     sys.exit(1)
 
 def info(msg: str) -> None:
     print(msg)
 
 def show_root_or_mount_error(path: Path) -> None:
-    print("\n❌ ERROR: The directory '{}' is too large or unsafe to scan.".format(path))
+    print(f"\n{em.err()}ERROR: The directory '{path}' is too large or unsafe to scan.")
     print("\nThis tool is intended for scanning *project directories* and caches, not entire disks.")
     print("\nPlease provide the path to a development workspace or project root.")
     print("Examples:")
@@ -284,7 +284,7 @@ def print_header(
     print()
     print("--------------------------------------------------------------")
     print()
-    print(f" 👾⚡️ autumo Sentinel v{version} - Copyright 2025 autumo GmbH")
+    print(f" {em.logo()}autumo Sentinel v{version} - Copyright 2025 autumo GmbH")
     print()
     print(f" License: {license_text}")
     print()
@@ -582,7 +582,7 @@ class DevScanner:
         if not merged_rules:
             die(f"No rules found in {config_path}")
 
-        info(f"💾 Loaded rules with level ≥ '{self.heuristics_level.upper()}':")
+        info(f"{em.disk()}Loaded rules with level ≥ '{self.heuristics_level.upper()}':")
         info(f"- Low:    {low}")
         info(f"- Medium: {medium}")
         info(f"- High:   {high}\n")
@@ -607,7 +607,7 @@ class DevScanner:
             overlap_width = max(len('NO-OVERLAP' if r.get('only_if_no_match') else 'OVERLAP') for r in merged_rules) + 2
             id_width = max(len(r['id']) for r in merged_rules) + 2
 
-            info("🔢 Rules execution order:")
+            info(f"{em.order()}Rules execution order:")
             for r in merged_rules:
                 severity = r['severity'].upper()
                 overlap = 'NO-OVERLAP' if r.get('only_if_no_match') else 'OVERLAP'
@@ -1059,7 +1059,7 @@ class DevScanner:
             print_progress(total_files_in_dir, total_files_in_dir)
 
         info("")
-        info(f"ℹ️  Scanned: {processed_files} relevant files in {path}")
+        info(f"{em.info()}Scanned: {processed_files} relevant files in {path}")
         return hits
 
     def scan_caches(self, local: bool = True) -> int:
@@ -1077,7 +1077,7 @@ class DevScanner:
     # Print-Out/Log Functions
     # ------------------------------------------------------------
     def print_setup(self) -> None:
-        print(f"🔍 Scanning:")
+        print(f"{em.scan()}Scanning:")
         self.log.write(f"Scanning:\n")
 
         print(f"- Project directory:")
@@ -1154,48 +1154,48 @@ class DevScanner:
         scan_start = time.perf_counter()
 
         # 1) Filenames scan
-        info("\n🔍 Scanning for suspicious filenames...")
+        info(f"\n{em.scan()}Scanning for suspicious filenames...")
         section_hits = self.scan_filenames()
         if section_hits > 0:
-            info(f"⚠️  Found {section_hits} suspicious filenames in project directory\n")
+            info(f"{em.warn()}Found {section_hits} suspicious filenames in project directory\n")
             self.log.write(f"Found {section_hits} suspicious filenames in project directory\n")
         else:
-            info("✅ No suspicious filenames found\n")
+            info(f"{em.ok()}No suspicious filenames found\n")
             self.log.write("No suspicious filenames found\n")
         self.log.flush()
 
         # 2) Scan root directory
-        info("\n🔍 Scanning for suspicious contents...")
+        info(f"\n{em.scan()}Scanning for suspicious contents...")
         section_hits = self.scan_directory(self.root_dir)
         if section_hits > 0:
-            info(f"⚠️  Found {section_hits} suspicious patterns/rules in project directory\n")
+            info(f"{em.warn()}Found {section_hits} suspicious patterns/rules in project directory\n")
             self.log.write(f"Found {section_hits} suspicious patterns/rules in project directory\n")
         else:
-            info("✅ No suspicious patterns/rules found in project directory\n")
+            info(f"{em.ok()}No suspicious patterns/rules found in project directory\n")
             self.log.write("No suspicious patterns/rules found in project directory\n")
         self.log.flush()
         
         # 3) Scan local caches
         if self.local_scan:
-            info("\n🔍 Scanning local caches...")
+            info(f"\n{em.scan()}Scanning local caches...")
             section_hits = self.scan_caches(local=True)
             if section_hits > 0:
-                info(f"⚠️  Found {section_hits} suspicious patterns/rules in local caches\n")
+                info(f"{em.warn()}Found {section_hits} suspicious patterns/rules in local caches\n")
                 self.log.write(f"Found {section_hits} suspicious patterns/rules in local caches\n")
             else:
-                info("✅ No suspicious patterns/rules found in local caches\n")
+                info(f"{em.ok()}No suspicious patterns/rules found in local caches\n")
                 self.log.write("No suspicious patterns/rules found in local caches\n")
         self.log.flush()
 
         # 4) Scan global caches if -g
         if self.global_scan:
-            info("\n🌍 Scanning global caches...")
+            info(f"\n{em.glob()}Scanning global caches...")
             section_hits = self.scan_caches(local=False)
             if section_hits > 0:
-                info(f"⚠️  Found {section_hits} suspicious patterns/rules in global caches\n")
+                info(f"{em.warn()}Found {section_hits} suspicious patterns/rules in global caches\n")
                 self.log.write(f"Found {section_hits} suspicious patterns/rules in global caches\n")
             else:
-                info("✅ No suspicious patterns/rules found in global caches\n")
+                info(f"{em.ok()}No suspicious patterns/rules found in global caches\n")
                 self.log.write("No suspicious patterns/rules found in global caches\n")
         self.log.flush()
         
@@ -1204,10 +1204,10 @@ class DevScanner:
         info("")
         self.log.write("--------------------------------------------------------------\n")
         if self.total_hits == 0:
-            info("✅ No suspicious patterns/rules found")
+            info(f"{em.ok()}No suspicious patterns/rules found")
             self.log.write("No suspicious patterns/rules found\n") 
         else:
-            info(f"⚠️  Suspicious patterns/rules found!")
+            info(f"{em.warn()}Suspicious patterns/rules found!")
             self.log.write(f"Suspicious patterns/rules found!\n")
             info(f"- Total hits: {self.total_hits}")
             self.log.write(f"- Total hits: {self.total_hits}\n")
