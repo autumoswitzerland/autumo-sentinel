@@ -25,7 +25,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [macos-15-intel, macos-latest, ubuntu-latest, windows-latest]
+        os: [macos-15-intel, macos-latest, ubuntu-22.04, windows-latest]
     runs-on: ${{ matrix.os }}
     name: Build ${{ matrix.os }}
 
@@ -81,7 +81,7 @@ jobs:
             --distpath ${{ env.DIST_DIR }} app/${{ env.BIN_NAME }}.py
 
       - name: Build CLI (Linux)
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-22.04'
         shell: bash
         run: |
           pyinstaller --name ${{ env.BIN_NAME }} \
@@ -102,9 +102,9 @@ jobs:
 
           ZIP_BASENAME="autumo-Sentinel-${{ env.VERSION }}"
           case "${{ matrix.os }}" in
-            macos-15-intel)  ZIP_BASENAME="$ZIP_BASENAME-macos-x64" ;;
+            ubuntu-22.04)    ZIP_BASENAME="$ZIP_BASENAME-linux-x64" ;;
             macos-latest)    ZIP_BASENAME="$ZIP_BASENAME-macos-arm64" ;;
-            ubuntu-latest)   ZIP_BASENAME="$ZIP_BASENAME-linux-x64" ;;
+            macos-15-intel)  ZIP_BASENAME="$ZIP_BASENAME-macos-x64" ;;
             windows-latest)  ZIP_BASENAME="$ZIP_BASENAME-windows-x64" ;;
           esac
 
