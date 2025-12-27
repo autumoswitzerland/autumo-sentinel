@@ -115,9 +115,58 @@ jobs:
 
           echo "ZIP_BASENAME=$ZIP_BASENAME" >> $GITHUB_ENV
 
+      # --------- ZIP artifact ---------
+      - name: ZIP release
+        shell: bash
+        run: |
+          cd release
+          zip -r "${ZIP_BASENAME}.zip" "$ZIP_BASENAME"
+          cd ..
+
       # --------- Upload artifact ---------
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ZIP_BASENAME }}
-          path: release/*
+          path: release/${{ env.ZIP_BASENAME }}.zip
+          # Without ZIP -> path: release/*
+
+  release:
+    name: Create Draft Release
+    needs: build
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Show downloaded artifacts
+        run: ls -R artifacts
+
+      - name: Create Draft GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: autumo Sentinel v${{ env.VERSION }}
+          draft: true
+          prerelease: false
+          files: artifacts/*.zip
+          body: |
+            ## autumo Sentinel v${{ env.VERSION }}
+
+            **Multi‑Stage Supply‑Chain Malware Scanner & Code Forensics Engine**
+
+            Included platforms:
+            - macOS (Intel & ARM)
+            - Linux x64
+            - Windows x64
+
+            > Draft release – not published
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -282,24 +282,24 @@ def print_header(
     )
     
     print()
-    print("--------------------------------------------------------------")
+    print("----------------------------------------------------------------")
     print()
-    print(f" {em.logo()}autumo Sentinel v{version} - Copyright 2025 autumo GmbH")
+    print(f"  {em.logo()}autumo Sentinel v{version} - Copyright 2025 autumo GmbH")
     print()
-    print(f" License: {license_text}")
+    print(f"  License: {license_text}")
     print()
-    print(" Multi-stage supply-chain malware scanning with pattern-based")
-    print(" detection and heuristic analysis.")
+    print("  Multi-stage supply-chain malware scanning with pattern-based")
+    print("  detection and heuristic analysis.")
     print()
-    print(" Scan duration depends on directory depth, workspace size,")
-    print(" number of files, cache directory size if scanning caches.")
+    print("  Scan duration depends on directory depth, workspace size,")
+    print("  number of files, cache directory size if scanning caches.")
     print()
-    print(" Important Notice:")
-    print("   - No scanning method can guarantee 100% detection.")
-    print("   - Not all matches are necessarily dangerous.")
-    print("   - Manual review is always required.")
+    print("  Important Notice:")
+    print("    - No scanning method can guarantee 100% detection.")
+    print("    - Not all matches are necessarily dangerous.")
+    print("    - Manual review is always required.")
     print()
-    print("--------------------------------------------------------------")
+    print("----------------------------------------------------------------")
     print()
 
 # ------------------------------------------------------------
@@ -1122,8 +1122,8 @@ class DevScanner:
             print(f"- Excluded directories: {', '.join(self.exclude_dirs)}")
             self.log.write(f"- Excluded directories: {', '.join(self.exclude_dirs)}\n")
 
-        info("\n--------------------------------------------------------------")
-        self.log.write("--------------------------------------------------------------\n")
+        info("\n----------------------------------------------------------------")
+        self.log.write("----------------------------------------------------------------\n")
         self.log.flush()
         print()
 
@@ -1200,9 +1200,9 @@ class DevScanner:
         self.log.flush()
         
         # Summary
-        info("\n--------------------------------------------------------------")
+        info("\n----------------------------------------------------------------")
         info("")
-        self.log.write("--------------------------------------------------------------\n")
+        self.log.write("----------------------------------------------------------------\n")
         if self.total_hits == 0:
             info(f"{em.ok()}No suspicious patterns/rules found")
             self.log.write("No suspicious patterns/rules found\n") 
@@ -1231,8 +1231,8 @@ class DevScanner:
         self.print_scan_summary(duration)
 
         info("")
-        info("--------------------------------------------------------------\n")
-        self.log.write("--------------------------------------------------------------\n")
+        info("----------------------------------------------------------------\n")
+        self.log.write("----------------------------------------------------------------\n")
 
 # ------------------------------------------------------------
 # Main
