@@ -57,7 +57,7 @@ jobs:
       - name: Build CLI (Windows)
         if: matrix.os == 'windows-latest'
         shell: pwsh
-        run:
+        run: |
           pyinstaller --name ${{ env.BIN_NAME }} `
             --onefile --icon "app/resources/icon.ico" `
             --distpath ${{ env.DIST_DIR }} app/${{ env.BIN_NAME }}.py
@@ -65,16 +65,16 @@ jobs:
       - name: Build CLI (macOS ARM)
         if: matrix.os == 'macos-latest'
         shell: bash
-        run:
+        run: |
           pyinstaller --name ${{ env.BIN_NAME }} \
             --onefile --icon "app/resources/icon.icns" \
-            --target-architecture arm64  \
+            --target-architecture arm64 \
             --distpath ${{ env.DIST_DIR }} app/${{ env.BIN_NAME }}.py
 
       - name: Build CLI (macOS Intel)
         if: matrix.os == 'macos-15-intel'
         shell: bash
-        run:
+        run: |
           pyinstaller --name ${{ env.BIN_NAME }} \
             --onefile --icon "app/resources/icon.icns" \
             --target-arch x86_64 \
@@ -83,7 +83,7 @@ jobs:
       - name: Build CLI (Linux)
         if: matrix.os == 'ubuntu-latest'
         shell: bash
-        run:
+        run: |
           pyinstaller --name ${{ env.BIN_NAME }} \
             --onefile --icon "app/resources/icon.png" \
             --distpath ${{ env.DIST_DIR }} app/${{ env.BIN_NAME }}.py
