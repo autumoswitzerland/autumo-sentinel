@@ -35,7 +35,6 @@ jobs:
 
       # --------- Setup Python ---------
       - name: Setup Python 3.12 (macOS/Linux)
-        if: runner.os != 'Windows'
         uses: actions/setup-python@v4
         with:
           python-version: ${{ env.PYTHON_VERSION }}
@@ -45,33 +44,54 @@ jobs:
 
       # --------- Clean previous builds ---------
       - name: Clean previous builds (Windows)
+        shell: pwsh
         if: matrix.os == 'windows-latest'
         run: Remove-Item -Recurse -Force ${{ env.DIST_DIR }}, build, ${{ env.BIN_NAME }}.spec -ErrorAction SilentlyContinue
-        shell: pwsh
 
       - name: Clean previous builds (macOS/Linux)
         if: matrix.os != 'windows-latest'
-        run: rm -rf ${{ env.DIST_DIR }} build ${{ env.BIN_NAME }}.spec
         shell: bash
+        run: rm -rf ${{ env.DIST_DIR }} build ${{ env.BIN_NAME }}.spec
 
       # --------- Build sentinel CLI ---------
       - name: Build CLI (Windows)
         if: matrix.os == 'windows-latest'
-        run: pyinstaller --name ${{ env.BIN_NAME }} --onefile --distpath ${{ env.DIST_DIR }} app/${{ env.BIN_NAME }}.py
         shell: pwsh
+        run:
+          pyinstaller --name ${{ env.BIN_NAME }} `
+            --onefile --icon "app/resources/icon.ico" `
+            --distpath ${{ env.DIST_DIR }} app/${{ env.BIN_NAME }}.py
 
       - name: Build CLI (macOS ARM)
         if: matrix.os == 'macos-latest'
-        run: pyinstaller --name ${{ env.BIN_NAME }} --onefile --target-arch arm64 --distpath ${{ env.DIST_DIR }} app/${{ env.BIN_NAME }}.py
         shell: bash
+        run:
+          pyinstaller --name ${{ env.BIN_NAME }} \
+            --onefile --icon "app/resources/icon.icns" \
+            --target-arch arm64  \
+            --distpath ${{ env.DIST_DIR }} app/${{ env.BIN_NAME }}.py
 
-      - name: Build CLI (macOS Intel / Linux)
-        if: matrix.os != 'windows-latest' && matrix.os != 'macos-latest'
-        run: pyinstaller --name ${{ env.BIN_NAME }} --onefile --target-arch x86_64 --distpath ${{ env.DIST_DIR }} app/${{ env.BIN_NAME }}.py
+      - name: Build CLI (macOS Intel)
+        if: matrix.os == 'macos-15-intel'
         shell: bash
+        run:
+          pyinstaller --name ${{ env.BIN_NAME }} \
+            --onefile --icon "app/resources/icon.icns" \
+            --target-arch x86_64 \
+            --distpath ${{ env.DIST_DIR }} app/${{ env.BIN_NAME }}.py
+
+      - name: Build CLI (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run:
+          pyinstaller --name ${{ env.BIN_NAME }} \
+            --onefile --icon "app/resources/icon.png" \
+            --target-arch x86_64 \
+            --distpath ${{ env.DIST_DIR }} app/${{ env.BIN_NAME }}.py
 
       # --------- Prepare Artifact Contents ---------
       - name: Prepare Artifact Contents
+        shell: bash
         run: |
           mkdir -p "${{ env.DIST_DIR }}/rules"
           cp -r config "${{ env.DIST_DIR }}"
@@ -86,14 +106,19 @@ jobs:
             macos-15-intel)  ZIP_BASENAME="$ZIP_BASENAME-macos-x64" ;;
             macos-latest)    ZIP_BASENAME="$ZIP_BASENAME-macos-arm64" ;;
             ubuntu-latest)   ZIP_BASENAME="$ZIP_BASENAME-linux-x64" ;;
-            windows-latest)  ZIP_BASENAME="$ZIP_BASENAME--windows-x64" ;;
+            windows-latest)  ZIP_BASENAME="$ZIP_BASENAME-windows-x64" ;;
           esac
+
+          rm -rf release
+          mkdir release
+          mkdir "release/$ZIP_BASENAME"
+          cp -r ${{ env.DIST_DIR }}/* "release/$ZIP_BASENAME/"
+
           echo "ZIP_BASENAME=$ZIP_BASENAME" >> $GITHUB_ENV
-        shell: bash
 
       # --------- Upload artifact ---------
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ZIP_BASENAME }}
-          path: ${{ env.DIST_DIR }}/*
+          path: release/*
