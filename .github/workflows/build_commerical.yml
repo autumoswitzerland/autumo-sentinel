@@ -34,6 +34,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # --------- Checkout private rules ---------
+      - name: Checkout private rules
+        uses: actions/checkout@v4
+        with:
+          repository: autumo/autumo-sentinel-private
+          token: ${{ secrets.RULES_REPO_TOKEN }}
+          path: rules_commercial
+
       # --------- Setup Python ---------
       - name: Setup Python 3.12
         uses: actions/setup-python@v4
@@ -126,6 +134,7 @@ jobs:
           cp -r config "${{ env.DIST_DIR }}"
           cp -r patterns "${{ env.DIST_DIR }}"
           cp rules/rule* "${{ env.DIST_DIR }}/rules"
+          cp rules_commercial/rules/rule* rules/
           cp README.md "${{ env.DIST_DIR }}"
           cp LICENSE "${{ env.DIST_DIR }}"
           cp .github/resources/LICENSE_COMMERCIAL.html "${{ env.DIST_DIR }}"
