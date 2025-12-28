@@ -39,12 +39,11 @@ import platform
 import argparse
 import traceback
 from pathlib import Path
-from typing import List, Dict, Tuple
 from collections import defaultdict
 from dataclasses import dataclass, field
 
 import emoji as em
-from heuristics import HeuristicEngine
+from heuristics import HeuristicEngine, HeuristicRule
 from build_info import COMMERCIAL_BUILD, VERSION
 
 # ------------------------------------------------------------
@@ -71,15 +70,15 @@ class CommentState:
 
 @dataclass
 class RuleHitContext:
-    rule: object  # rule itself
-    matched_lines: list = field(default_factory=list)
+    rule: HeuristicRule  # rule itself
+    matched_lines: list[tuple[str, int, str]] = field(default_factory=list)
     total_hits: int = 0
 
 @dataclass
 class FileHeuristicContext:
     file_path: Path
     # key: rule.id, value: RuleHitContext
-    rules_hits: dict = field(default_factory=dict)
+    rules_hits: dict[str, RuleHitContext] = field(default_factory=dict)
 
 # ------------------------------------------------------------
 # Helpers
@@ -131,7 +130,7 @@ def get_os_type() -> str:
     else:
         return "unknown"
     
-def is_root_or_mount(path: Path, blocked_paths: List[str], blocked_windows_paths: List[str]) -> bool:
+def is_root_or_mount(path: Path, blocked_paths: list[str], blocked_windows_paths: list[str]) -> bool:
     path_str = str(path)
     system = platform.system()
     if system in ("Linux", "Darwin"):
@@ -146,8 +145,8 @@ def is_root_or_mount(path: Path, blocked_paths: List[str], blocked_windows_paths
                 return True
     return False
 
-def load_patterns(file_path: Path) -> List[str]:
-    patterns: List[str] = []
+def load_patterns(file_path: Path) -> list[str]:
+    patterns: list[str] = []
     if not file_path.is_file():
         return patterns
     with file_path.open("r", encoding="utf-8") as f:
@@ -210,18 +209,21 @@ OPTIONS:
           - high    high severity only
 
   --no-bail-out
-        Disable bail-out limits.
-        Processes entire files without line or character limits.
-        May significantly increase scan time.
+        Prevents early termination when a finding is detected.
+        The scanner continues analyzing the full file, but reports
+        only the first match per rule.
+        Use '--all-matches' to collect multiple findings per file.
 
   --all-matches
-        Evaluate all heuristic rules.
-        Ignores rules marked with 'only_if_no_match'.
+        Report all matches per rule and file instead of stopping after the
+        first finding. May increase scan time and output size.
+        Note: Rules marked as 'only_if_no_match' are ignored when this
+        option is enabled.
 
   --forensic
-        Enable forensic mode.
+        Enable forensic mode for exhaustive analysis and reporting.
         Equivalent to:
-          --no-bail-out + --all-matches
+          '--no-bail-out' + '--all-matches'
 
   --exclude-dirs <dir1,dir2,...>
         Comma-separated list of directory names to exclude
@@ -387,7 +389,7 @@ class DevScanner:
                 die(f"Unexpected error: {e}")
 
         # Prepare batch hits
-        self.batch_hits: List[Tuple[Path, int, str, str]] = []
+        self.batch_hits: list[tuple[Path, int, str, str]] = []
 
         # General setup
         self.csv_file = Path(self.config["csv_file"])
@@ -437,14 +439,14 @@ class DevScanner:
 
         # Cache dirs
         self.os_type = get_os_type()
-        self.cache_dirs_local: List[str] = self.config["cache_dirs"][self.os_type]["local"]
-        self.cache_dirs_global: List[str] = self.config["cache_dirs"][self.os_type]["global"]
+        self.cache_dirs_local: list[str] = self.config["cache_dirs"][self.os_type]["local"]
+        self.cache_dirs_global: list[str] = self.config["cache_dirs"][self.os_type]["global"]
 
         # Safety
         self.safety_config = self.config["safety"]
 
         # Initialize CSV
-        self.csv_file.write_text("file;hits;pattern_or_rule;rule_id;rule_type;type_or_severity;line_number;line\n", encoding="utf-8")
+        self.csv_file.write_text("file;hits;pattern_or_rule;type_or_severity;rule_id;rule_type;line_number;line\n", encoding="utf-8")
 
         # Setup
         self.print_setup()
@@ -497,7 +499,7 @@ class DevScanner:
         if not config_path.is_file():
             die("Config file config/config.json not found")
         with config_path.open("r", encoding="utf-8") as f:
-            self.config: Dict = json.load(f)
+            self.config: dict = json.load(f)
 
     def rules_sort_key(self, rule: dict):
         severity = rule.get("severity", "low").lower()
@@ -649,7 +651,11 @@ class DevScanner:
                 continue
 
             for fname in filenames:
-                ext = Path(fname).suffix.lower()
+                file_path = safe_realpath(Path(dirpath) / fname)
+                if not isinstance(file_path, Path):
+                    file_path = Path(file_path)
+
+                ext = file_path.suffix.lower()
                 if self.os_type == "windows":
                     if ext in self.win_shell_extensions or ext in self.content_extensions or fname.lower() in self.content_files:
                         total += 1
@@ -658,7 +664,7 @@ class DevScanner:
                         total += 1
         return total
 
-    def strip_comments(self, line: str, ext: str, state: CommentState, shell_exts: list) -> Tuple[bool, str]:
+    def strip_comments(self, line: str, ext: str, state: CommentState, shell_exts: list) -> tuple[bool, str]:
         """
         Returns (skip_line, processed_line)
 
@@ -811,17 +817,21 @@ class DevScanner:
         hits = 0
         for dirpath, _, filenames in os.walk(self.root_dir):
             for fname in filenames:
+
                 if fname in self.patterns_files:
                     file_path = safe_realpath(Path(dirpath) / fname)
+                    if not isinstance(file_path, Path):
+                        file_path = Path(file_path)
+
                     self.record_hit(file_path, 1, "[filename-only]", "filename", "", "", 0, "", limit_line=False)
                     hits += 1
         return hits
 
-    def scan_directory(self, path: Path) -> int:
+    def scan_directory(self, path: Path) -> tuple[int, int]:
         hits = 0
         path = safe_realpath(path)
         if not path.exists():
-            return hits
+            return hits, 0
 
         # Count relevant files for processing directory for progress tracking
         total_files_in_dir = self.count_relevant_files(path)
@@ -1060,18 +1070,20 @@ class DevScanner:
 
         info("")
         info(f"{em.info()}Scanned: {processed_files} relevant files in {path}")
-        return hits
+        return hits, processed_files
 
-    def scan_caches(self, local: bool = True) -> int:
+    def scan_caches(self, local: bool = True) -> tuple[int, int]:
         hits = 0
         dirs = self.cache_dirs_local if local else self.cache_dirs_global
+        total_files_in_cache = 0
         for d in dirs:
             expanded = Path(os.path.expandvars(os.path.expanduser(d)))
             if expanded.exists():
                 info(f"Scanning cache: {expanded}")
-                h = self.scan_directory(expanded)
+                h, tf = self.scan_directory(expanded)
                 hits += h
-        return hits
+                total_files_in_cache += tf
+        return hits, total_files_in_cache
 
     # ------------------------------------------------------------
     # Print-Out/Log Functions
@@ -1117,6 +1129,7 @@ class DevScanner:
                 self.log.write(f"- Bail-out disabled (no line/file limits)\n")
             if self.all_matches:
                 print("- All-matches mode enabled (ignore only_if_no_match)")
+                self.log.write(f"- All-matches mode enabled (ignore only_if_no_match)\n")
 
         if self.exclude_dirs:
             print(f"- Excluded directories: {', '.join(self.exclude_dirs)}")
@@ -1147,6 +1160,9 @@ class DevScanner:
         # Safety
         self.check_root_protection()
 
+        # Scanned files counter
+        total_files_scanned = 0
+
         # Section hits counter
         section_hits = 0
 
@@ -1166,7 +1182,8 @@ class DevScanner:
 
         # 2) Scan root directory
         info(f"\n{em.scan()}Scanning for suspicious contents...")
-        section_hits = self.scan_directory(self.root_dir)
+        section_hits, fc = self.scan_directory(self.root_dir)
+        total_files_scanned += fc
         if section_hits > 0:
             info(f"{em.warn()}Found {section_hits} suspicious patterns/rules in project directory\n")
             self.log.write(f"Found {section_hits} suspicious patterns/rules in project directory\n")
@@ -1178,7 +1195,8 @@ class DevScanner:
         # 3) Scan local caches
         if self.local_scan:
             info(f"\n{em.scan()}Scanning local caches...")
-            section_hits = self.scan_caches(local=True)
+            section_hits, fc = self.scan_caches(local=True)
+            total_files_scanned += fc
             if section_hits > 0:
                 info(f"{em.warn()}Found {section_hits} suspicious patterns/rules in local caches\n")
                 self.log.write(f"Found {section_hits} suspicious patterns/rules in local caches\n")
@@ -1190,7 +1208,8 @@ class DevScanner:
         # 4) Scan global caches if -g
         if self.global_scan:
             info(f"\n{em.glob()}Scanning global caches...")
-            section_hits = self.scan_caches(local=False)
+            section_hits, fc = self.scan_caches(local=False)
+            total_files_scanned += fc
             if section_hits > 0:
                 info(f"{em.warn()}Found {section_hits} suspicious patterns/rules in global caches\n")
                 self.log.write(f"Found {section_hits} suspicious patterns/rules in global caches\n")
@@ -1203,12 +1222,14 @@ class DevScanner:
         info("\n----------------------------------------------------------------")
         info("")
         self.log.write("----------------------------------------------------------------\n")
+        info(f"{em.info()}{total_files_scanned} files scanned")
+        self.log.write(f"{total_files_scanned} files scanned\n") 
         if self.total_hits == 0:
             info(f"{em.ok()}No suspicious patterns/rules found")
             self.log.write("No suspicious patterns/rules found\n") 
         else:
-            info(f"{em.warn()}Suspicious patterns/rules found!")
-            self.log.write(f"Suspicious patterns/rules found!\n")
+            info(f"{em.warn()}Suspicious patterns/rules found:")
+            self.log.write(f"Suspicious patterns/rules found:\n")
             info(f"- Total hits: {self.total_hits}")
             self.log.write(f"- Total hits: {self.total_hits}\n")
             info(f"- CSV report: {self.csv_file}")

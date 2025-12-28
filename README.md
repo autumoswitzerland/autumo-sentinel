@@ -34,7 +34,11 @@ autumo Sentinel is a heuristic-driven, multi-stage scanner for detecting supply-
 The following chart provides an overview of **autumo Sentinel v3.0** across 12 runs with different combinations of severity levels and scan options. It visualizes the relationship between **total hits** and **scan duration**, highlighting the impact of severity and forensic-related options.
 
 ![autumo Sentinel Hits vs Duration](app/resources/performance.png)
-**Note:** Figure is outdated – needs updating.
+**Note:** Reported findings vary by scan mode. Sentinel intentionally separates analysis depth from finding count. Lower numbers do not mean lower detection quality.
+
+> **Scan depth:** controlled by `--no-bail-out`  
+> **Reported findings:** controlled by `--all-matches`  
+> **Rule precision:** controlled by `--heuristics-level`  
 
 Each point represents a single run:
 - **Labels**:
@@ -187,13 +191,13 @@ sentinel <directory> [options]
   - high – high severity only
 
 - `--no-bail-out`
-  Disable bail-out limits. Processes entire files without line or character limits. May significantly increase scan time.
+  Prevents early termination when a finding is detected. The scanner continues analyzing the full file, but reports only the first match per rule. Use `--all-matches` to collect multiple findings per file.
 
 - `--all-matches`
-  Evaluate all heuristic rules, ignoring rules marked with `only_if_no_match`.
+  Report all matches per rule and file instead of stopping after the first finding. May increase scan time and output size. Note: Rules marked as `only_if_no_match` are ignored when this option is enabled.
 
 - `--forensic`
-  Enable forensic mode (equivalent to `--no-bail-out` + `--all-matches`).
+  Enable forensic mode for exhaustive analysis and reporting. Equivalent to: `--no-bail-out` + `--all-matches`.
 
 - `--exclude-dirs <dir1,dir2,...>`
   Comma-separated list of directory names to exclude from scanning (matched by directory basename).

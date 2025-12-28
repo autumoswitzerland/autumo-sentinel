@@ -34,7 +34,7 @@ import traceback
 import collections
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Union, Tuple, Dict, List, Any
+from typing import Any
 
 import emoji as em
 
@@ -63,8 +63,8 @@ class HeuristicRule:
     scope: str            # "line" | "file"
     severity: str
     only_if_no_match: bool
-    applies_to: Dict[str, Any]
-    parameters: Dict[str, Any]
+    applies_to: dict[str, Any]
+    parameters: dict[str, Any]
     heuristic_threshold: int = 1
     description: str = ""
     false_positive_note: str = ""
@@ -75,11 +75,11 @@ class HeuristicRule:
     # Reset states; a rule is stateful!
     sum_lines: int = 0
     sum_chars: int = 0
-    matched_lines: List[str] = field(default_factory=list)
+    matched_lines: list[str] = field(default_factory=list)
     bailout: bool = False
     minified: bool = False
     
-    def matches(self, data: Union[str, List[str]], ext: str) -> Tuple[bool, str]:
+    def matches(self, data: str | list[str], ext: str) -> tuple[bool, str]:
         # Reset matched lines
         self.matched_lines = []
         self.sum_lines = 0
@@ -94,7 +94,7 @@ class HeuristicRule:
         
         self.die(f"Scope {self.scope} is invalid, check rule id {self.id}")
 
-    def get_matched_lines(self) -> List[str]:
+    def get_matched_lines(self) -> list[str]:
         return self.matched_lines or []
     
     def has_bailout(self) -> bool:
@@ -113,7 +113,7 @@ class HeuristicEngine:
     Heuristic Rules are stateful; reset states after using an instance!
     """
 
-    def __init__(self, base_config: Dict[str, Any], config: Dict[str, Any], no_bail_out: bool, log=None) -> None:
+    def __init__(self, base_config: dict[str, Any], config: dict[str, Any], no_bail_out: bool, log=None) -> None:
         self.debug_mode = base_config.get("debug_mode", False)
         self.max_line_rule_hit_length = base_config["limits"].get("max_line_rule_hit_length", DEFAULT_LIMIT_LINE_RULE_HIT)
         self.max_lines_file_scan = base_config["limits"].get("max_lines_file_scan", DEFAULT_LIMIT_LINES_FILE_SCAN)
@@ -128,7 +128,7 @@ class HeuristicEngine:
             for ext in self.extensions.get(key, [])
         ]
 
-        self.rules: List[HeuristicRule] = []
+        self.rules: list[HeuristicRule] = []
         self.no_bail_out = no_bail_out
         self.log = log
 
@@ -154,7 +154,7 @@ class HeuristicEngine:
         line: str,
         ext: str,
         had_signature_match: bool = False
-    ) -> Tuple[bool, str]:
+    ) -> tuple[bool, str]:
         
         if rule.scope != "line":
             return False, None
@@ -179,11 +179,11 @@ class HeuristicEngine:
         self,
         rule: HeuristicRule,
         *,
-        lines: List[str],
+        lines: list[str],
         ext: str,
         scan_context: str = None,
         had_signature_match: bool = False
-    ) -> Tuple[bool, str]:
+    ) -> tuple[bool, str]:
 
         if rule.scope != "file":
             return False, None
@@ -236,7 +236,7 @@ class HeuristicEngine:
     # ------------------------------------------------------------
     # Rule loading
     # ------------------------------------------------------------
-    def _load_rules(self, config: Dict[str, Any]) -> None:
+    def _load_rules(self, config: dict[str, Any]) -> None:
 
         # All sorting have already been placed here!
         rules_raw = config.get("rules", [])
