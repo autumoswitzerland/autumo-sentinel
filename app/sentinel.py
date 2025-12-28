@@ -1067,7 +1067,7 @@ class DevScanner:
 
         info("")
         info(f"{em.info()}Scanned: {processed_files} relevant files in {path}")
-        return hits, total_files_in_dir
+        return hits, processed_files
 
     def scan_caches(self, local: bool = True) -> tuple[int, int]:
         hits = 0
