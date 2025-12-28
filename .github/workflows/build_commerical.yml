@@ -134,7 +134,7 @@ jobs:
           cp -r config "${{ env.DIST_DIR }}"
           cp -r patterns "${{ env.DIST_DIR }}"
           cp rules/rule* "${{ env.DIST_DIR }}/rules"
-          cp rules_commercial/rules/rule* rules/
+          cp rules_commercial/rules/rule* "${{ env.DIST_DIR }}/rules/
           cp README.md "${{ env.DIST_DIR }}"
           cp LICENSE "${{ env.DIST_DIR }}"
           cp .github/resources/LICENSE_COMMERCIAL.html "${{ env.DIST_DIR }}"
