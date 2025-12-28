@@ -38,7 +38,7 @@ jobs:
       - name: Checkout private rules
         uses: actions/checkout@v4
         with:
-          repository: autumo/autumo-sentinel-private
+          repository: autumoswitzerland/autumo-sentinel-private
           token: ${{ secrets.RULES_REPO_TOKEN }}
           path: rules_commercial
 
